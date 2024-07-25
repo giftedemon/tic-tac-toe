@@ -1,18 +1,17 @@
-function createGameboard() {
+const Gameboard = (() => {
     let gameboard = ['_', '_', '_', '_', '_', '_', '_', '_', '_'];
     let playerCells = {
         X: [],
         O: [],
     };
 
-    const drawCell = (cell, player) => {
+    const drawCell = ({ cell, player }) => {
         if (gameboard[cell - 1] !== '_') {
-            alert('Pick valid cell');
             return 'invalid';
-        } else {
-            gameboard[cell - 1] = player.getMark();
-            playerCells[player.getMark()].push(cell);
         }
+
+        gameboard[cell - 1] = player.getMark();
+        playerCells[player.getMark()].push(cell);
     };
 
     const resetBoard = () => {
@@ -28,9 +27,9 @@ function createGameboard() {
     const getPlayerCells = () => playerCells;
 
     return { drawCell, getGameboard, getPlayerCells, resetBoard };
-}
+})();
 
-function createPlayer(name, mark) {
+const Player = ({ name, mark }) => {
     let points = 0;
 
     const getName = () => name;
@@ -40,10 +39,14 @@ function createPlayer(name, mark) {
     const addPoint = () => points++;
 
     return { getName, getMark, addPoint, getPoints };
-}
+};
+
+// --------------------------------------------------------------------
+
+// Game
 
 const Game = (function () {
-    const board = createGameboard();
+    const board = Gameboard;
     const players = [];
     const winningCombinations = [
         [1, 2, 3],
@@ -61,26 +64,26 @@ const Game = (function () {
         activeGame = true;
         activePlayer = players[0];
         board.resetBoard();
-        displayBoard.updateMark();
     };
 
-    const newRound = (element) => {
-        if (activeGame) {
-            if (board.drawCell(Number(element.getAttribute('data-index')), activePlayer) === 'invalid') {
-                return;
-            }
+    const newRound = (cell) => {
+        if (!activeGame) return { status: 'inactive' };
 
-            displayBoard.updateCell(element);
+        const drawStatus = board.drawCell({
+            cell,
+            player: activePlayer,
+        });
 
-            if (checkCombinations(activePlayer.getMark()) === 'winner') {
-                endGame(true);
-            } else if (checkCombinations(activePlayer.getMark()) === 'tie') {
-                endGame(false);
-            } else {
-                changeActivePlayer();
-            }
+        if (drawStatus === 'invalid') return { status: 'invalid' };
 
-            displayBoard.updateMark();
+        if (checkCombinations(activePlayer.getMark()) === 'winner') {
+            return endGame(true);
+        } else if (checkCombinations(activePlayer.getMark()) === 'tie') {
+            return endGame(false);
+        } else {
+            const displayedMark = activePlayer.getMark();
+            changeActivePlayer();
+            return { status: 'ongoing', mark: displayedMark };
         }
     };
 
@@ -88,14 +91,15 @@ const Game = (function () {
         let text;
 
         if (haveWinner) {
-            activePlayer.addPoint();
-            displayBoard.updatePoints();
             text = `${activePlayer.getName()} won!`;
+            activePlayer.addPoint();
         } else {
             text = `It's a tie!`;
         }
+
         activeGame = false;
-        displayBoard.showGameEnd(text);
+
+        return { text, status: haveWinner ? 'winner' : 'tie', mark: activePlayer.getMark() };
     };
 
     const changeActivePlayer = () => {
@@ -117,9 +121,9 @@ const Game = (function () {
         }
     };
 
-    const addPlayers = (firstPlayerName, secondPlayerName) => {
-        players.push(createPlayer(firstPlayerName, 'X'));
-        players.push(createPlayer(secondPlayerName, 'O'));
+    const addPlayers = ({ firstPlayerName, secondPlayerName }) => {
+        players.push(Player({ name: firstPlayerName, mark: 'X' }));
+        players.push(Player({ name: secondPlayerName, mark: 'O' }));
 
         activePlayer = players[0];
     };
@@ -131,7 +135,11 @@ const Game = (function () {
     return { newRound, addPlayers, getActivePlayer, startNewGame, getPlayers };
 })();
 
-const displayBoard = (function () {
+// ---------------------------------------------------------------------------------
+
+// Display Board
+
+const DisplayBoard = (function () {
     const playerNames = document.querySelector('.names-form');
     const gameContainer = document.querySelector('.game');
     const boardContainer = document.querySelector('.board');
@@ -140,8 +148,8 @@ const displayBoard = (function () {
     const closeDialog = document.querySelector('.close-dialog');
 
     const markSvgs = {
-        X: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8 9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"/></svg>`,
-        O: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M224 96a160 160 0 1 0 0 320 160 160 0 1 0 0-320zM448 256A224 224 0 1 1 0 256a224 224 0 1 1 448 0z"/></svg>`,
+        X: './imgs/x.svg',
+        O: './imgs/o.svg',
     };
 
     playerNames.addEventListener('submit', (e) => {
@@ -150,9 +158,10 @@ const displayBoard = (function () {
         const firstPlayerName = playerNames.querySelector('#player-one-name').value;
         const secondPlayerName = playerNames.querySelector('#player-two-name').value;
 
-        Game.addPlayers(firstPlayerName, secondPlayerName);
-
-        playerNames.classList.add('hidden');
+        Game.addPlayers({
+            firstPlayerName: firstPlayerName || 'Player 1',
+            secondPlayerName: secondPlayerName || 'Player 2',
+        });
 
         showBoard();
 
@@ -160,8 +169,32 @@ const displayBoard = (function () {
     });
 
     boardContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('cell')) {
-            Game.newRound(e.target);
+        const cellElement = e.target.closest('.cell');
+
+        if (cellElement) {
+            const cell = cellElement.getAttribute('data-index');
+            const { mark, text, status } = Game.newRound(Number(cell));
+
+            const statusActions = {
+                ongoing: () => {
+                    updateCell({ element: cellElement, mark });
+                    updateMark();
+                },
+                winner: () => {
+                    updateCell({ element: cellElement, mark });
+                    updateMark();
+                    endGame(text);
+                },
+                tie: () => {
+                    updateCell({ element: cellElement, mark });
+                    updateMark();
+                    endGame(text);
+                },
+                inactive: () => showDialog('Start the new game'),
+                invalid: () => showDialog('Invalid move'),
+            };
+
+            statusActions[status]();
         }
     });
 
@@ -179,12 +212,18 @@ const displayBoard = (function () {
         dialog.close();
     });
 
-    const showGameEnd = (text) => {
+    const endGame = (text) => {
+        showDialog(text);
+        updatePoints();
+    };
+
+    const showDialog = (text) => {
         dialog.querySelector('h2').textContent = text;
         dialog.showModal();
     };
 
     const showBoard = () => {
+        playerNames.classList.add('hidden');
         gameContainer.classList.remove('hidden');
 
         updateMark();
@@ -207,10 +246,9 @@ const displayBoard = (function () {
         gameContainer.querySelector('.player__mark').textContent = Game.getActivePlayer().getMark();
     };
 
-    const updateCell = (element) => {
-        const currentMark = Game.getActivePlayer().getMark();
-        element.innerHTML = markSvgs[currentMark];
+    const updateCell = ({ element, mark }) => {
+        element.innerHTML = `<img src=${markSvgs[mark]} draggable = 'false'/>`;
     };
 
-    return { showGameEnd, updateCell, updateMark, updatePoints };
+    return { showDialog, updateCell, updateMark, updatePoints };
 })();

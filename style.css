@@ -65,7 +65,7 @@ button {
     cursor: pointer;
 }
 
-svg {
+img {
     width: 50%;
     height: 50%;
 }
@@ -126,11 +126,12 @@ svg {
     width: 100%;
     display: flex;
     justify-content: space-between;
+    gap: 1rem;
 }
 
 .board {
-    width: 550px;
-    height: 550px;
+    width: 30vw;
+    height: 30vw;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
@@ -153,8 +154,8 @@ svg {
 dialog {
     justify-self: center;
     align-self: center;
-    width: 400px;
-    height: 200px;
+    width: 600px;
+    height: 300px;
     border-radius: 1.5rem;
 }
 
@@ -172,4 +173,25 @@ dialog h2 {
 
 dialog::backdrop {
     background-color: rgb(0 0 0 / 25%);
+}
+
+@media (max-width: 800px) {
+    .board {
+        width: 50vw;
+        height: 50vw;
+    }
+}
+
+@media (max-width: 600px) {
+    .board {
+        width: 70vw;
+        height: 70vw;
+    }
+}
+
+@media (max-width: 500px) {
+    .board {
+        width: 80vw;
+        height: 80vw;
+    }
 }
