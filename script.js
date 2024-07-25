@@ -106,7 +106,6 @@ const Game = (function () {
         const playerMarks = board.getPlayerCells()[mark];
         if (playerMarks.length >= 3) {
             for (const combination of winningCombinations) {
-                console.log(combination);
                 if (combination.every((element) => playerMarks.includes(element))) {
                     return 'winner';
                 }
