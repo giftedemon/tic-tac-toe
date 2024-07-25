@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="./style.css" />
+        <title>Tic Tac Toe</title>
+    </head>
+    <body>
+        <main class="container">
+            <form class="names-form">
+                <div class="inputs">
+                    <div class="input-container">
+                        <label for="player-one-name">Player 1 name:</label>
+                        <input type="text" id="player-one-name" name="player-one-name" required />
+                    </div>
+
+                    <div class="input-container">
+                        <label for="player-two-name">Player 2 name:</label>
+                        <input type="text" id="player-two-name" name="player-two-name" required />
+                    </div>
+                </div>
+
+                <button type="submit">Start Game</button>
+            </form>
+
+            <section class="game hidden">
+                <div class="points">
+                    <h3 class="points__player" id="player_one">Name</h3>
+                    <h3 class="player__mark"></h3>
+                    <h3 class="points__player" id="player_two">Name</h3>
+                </div>
+
+                <div class="board">
+                    <div class="cell" data-index="1"></div>
+                    <div class="cell" data-index="2"></div>
+                    <div class="cell" data-index="3"></div>
+                    <div class="cell" data-index="4"></div>
+                    <div class="cell" data-index="5"></div>
+                    <div class="cell" data-index="6"></div>
+                    <div class="cell" data-index="7"></div>
+                    <div class="cell" data-index="8"></div>
+                    <div class="cell" data-index="9"></div>
+                </div>
+
+                <button class="start-new-game" type="button">Start New Game</button>
+            </section>
+        </main>
+
+        <dialog>
+            <div class="dialog-content">
+                <h2>Won</h2>
+                <button class="close-dialog">Exit</button>
+            </div>
+        </dialog>
+
+        <script src="./script.js"></script>
+    </body>
+</html>
