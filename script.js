@@ -23,32 +23,11 @@ function createGameboard() {
         };
     };
 
-    const checkCombinations = (mark) => {
-        const playerMarks = playerCells[mark];
+    const getGameboard = () => gameboard;
 
-        if (playerMarks.length >= 3) {
-            if (
-                (playerMarks.includes(1) && playerMarks.includes(2) && playerMarks.includes(3)) ||
-                (playerMarks.includes(4) && playerMarks.includes(5) && playerMarks.includes(6)) ||
-                (playerMarks.includes(7) && playerMarks.includes(8) && playerMarks.includes(9)) ||
-                (playerMarks.includes(1) && playerMarks.includes(4) && playerMarks.includes(7)) ||
-                (playerMarks.includes(2) && playerMarks.includes(5) && playerMarks.includes(8)) ||
-                (playerMarks.includes(3) && playerMarks.includes(6) && playerMarks.includes(9)) ||
-                (playerMarks.includes(1) && playerMarks.includes(5) && playerMarks.includes(9)) ||
-                (playerMarks.includes(3) && playerMarks.includes(5) && playerMarks.includes(7))
-            ) {
-                return 'winner';
-            }
-        }
+    const getPlayerCells = () => playerCells;
 
-        if (gameboard.every((element) => element !== '_')) {
-            return 'tie';
-        }
-
-        return false;
-    };
-
-    return { drawCell, checkCombinations, resetBoard };
+    return { drawCell, getGameboard, getPlayerCells, resetBoard };
 }
 
 function createPlayer(name, mark) {
@@ -66,6 +45,16 @@ function createPlayer(name, mark) {
 const Game = (function () {
     const board = createGameboard();
     const players = [];
+    const winningCombinations = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [1, 4, 7],
+        [2, 5, 8],
+        [3, 6, 9],
+        [1, 5, 9],
+        [3, 5, 7],
+    ];
     let activePlayer, activeGame;
 
     const startNewGame = () => {
@@ -83,9 +72,9 @@ const Game = (function () {
 
             displayBoard.updateCell(element);
 
-            if (board.checkCombinations(activePlayer.getMark()) === 'winner') {
+            if (checkCombinations(activePlayer.getMark()) === 'winner') {
                 endGame(true);
-            } else if (board.checkCombinations(activePlayer.getMark()) === 'tie') {
+            } else if (checkCombinations(activePlayer.getMark()) === 'tie') {
                 endGame(false);
             } else {
                 changeActivePlayer();
@@ -111,6 +100,22 @@ const Game = (function () {
 
     const changeActivePlayer = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
+    };
+
+    const checkCombinations = (mark) => {
+        const playerMarks = board.getPlayerCells()[mark];
+        if (playerMarks.length >= 3) {
+            for (const combination of winningCombinations) {
+                console.log(combination);
+                if (combination.every((element) => playerMarks.includes(element))) {
+                    return 'winner';
+                }
+            }
+        }
+
+        if (board.getGameboard().every((element) => element !== '_')) {
+            return 'tie';
+        }
     };
 
     const addPlayers = (firstPlayerName, secondPlayerName) => {
